@@ -25,3 +25,7 @@ Copy `custom_components/dogfydiet` into your Home Assistant `custom_components` 
 4. Copy the value of `dogfy.refreshToken`
 
 The refresh token is valid for ~120 days and is automatically rotated by the integration.
+
+## Disclaimer
+
+This project is not affiliated with, endorsed by, or connected to Dogfy Diet in any way. It is an independent, community-driven integration.
