@@ -1,0 +1,43 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Dogfy Diet",
+        "description": "Enter your refresh token. You can find it in your browser's developer tools: Application > Local Storage > app.dogfydiet.com > dogfy.refreshToken",
+        "data": {
+          "refresh_token": "Refresh Token"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Invalid refresh token",
+      "cannot_connect": "Cannot connect to Dogfy Diet",
+      "unknown": "Unexpected error"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "subscription_status": {
+        "name": "Subscription status"
+      },
+      "subscription_amount": {
+        "name": "Subscription amount"
+      },
+      "next_order_date": {
+        "name": "Next order date"
+      },
+      "next_order_status": {
+        "name": "Next order status"
+      },
+      "dog_weight": {
+        "name": "Weight"
+      },
+      "dog_daily_grams": {
+        "name": "Daily ration"
+      },
+      "dog_age": {
+        "name": "Age"
+      }
+    }
+  }
+}
