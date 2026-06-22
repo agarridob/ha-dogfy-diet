@@ -6,9 +6,10 @@ from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .api import DogfyDietApi, DogfyDietApiError
+from .api import DogfyDietApi, DogfyDietApiError, DogfyDietAuthError
 from .const import CONF_REFRESH_TOKEN, DOMAIN, UPDATE_INTERVAL_MINUTES
 
 _LOGGER = logging.getLogger(__name__)
@@ -48,5 +49,9 @@ class DogfyDietCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 "subscription": profile.get("subscription", {}),
                 "orders": orders,
             }
+        except DogfyDietAuthError as err:
+            raise ConfigEntryAuthFailed(
+                "Refresh token expired — reauthentication required"
+            ) from err
         except DogfyDietApiError as err:
             raise UpdateFailed(f"Error fetching Dogfy Diet data: {err}") from err

@@ -7,7 +7,17 @@
         "data": {
           "refresh_token": "Refresh Token"
         }
+      },
+      "reauth_confirm": {
+        "title": "Reautenticar Dogfy Diet",
+        "description": "Tu refresh token ha caducado. Introduce uno nuevo.",
+        "data": {
+          "refresh_token": "Refresh Token"
+        }
       }
+    },
+    "abort": {
+      "reauth_successful": "Reautenticación completada"
     },
     "error": {
       "invalid_auth": "Refresh token inválido",
