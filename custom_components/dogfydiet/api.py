@@ -82,15 +82,15 @@ class DogfyDietApi:
         return await self._request("GET", "/self/orders")
 
     @staticmethod
-    async def validate_refresh_token(
-        session: aiohttp.ClientSession, refresh_token: str
+    async def login(
+        session: aiohttp.ClientSession, email: str, password: str
     ) -> dict[str, Any]:
-        url = f"{API_BASE_URL}/auth/refreshsession"
+        url = f"{API_BASE_URL}/auth/token"
         headers = {"Authorization": f"Bearer {GUEST_TOKEN}"}
         async with session.post(
-            url, headers=headers, json={"refreshToken": refresh_token}
+            url, headers=headers, json={"email": email, "password": password}
         ) as resp:
-            if resp.status == 401:
-                raise DogfyDietAuthError("Invalid refresh token")
+            if resp.status in (401, 403):
+                raise DogfyDietAuthError("Invalid credentials")
             resp.raise_for_status()
             return await resp.json()

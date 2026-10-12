@@ -7,6 +7,7 @@ import aiohttp
 import voluptuous as vol
 
 from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
+from homeassistant.const import CONF_EMAIL, CONF_PASSWORD
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api import DogfyDietApi, DogfyDietAuthError
@@ -14,15 +15,37 @@ from .const import CONF_REFRESH_TOKEN, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
-STEP_USER_DATA_SCHEMA = vol.Schema(
-    {
-        vol.Required(CONF_REFRESH_TOKEN): str,
-    }
-)
+
+def _login_schema(email: str | None = None) -> vol.Schema:
+    return vol.Schema(
+        {
+            vol.Required(CONF_EMAIL, default=email or vol.UNDEFINED): str,
+            vol.Required(CONF_PASSWORD): str,
+        }
+    )
 
 
 class DogfyDietConfigFlow(ConfigFlow, domain=DOMAIN):
     VERSION = 1
+
+    async def _async_login(
+        self, user_input: dict[str, Any], errors: dict[str, str]
+    ) -> dict[str, Any] | None:
+        session = async_get_clientsession(self.hass)
+        try:
+            return await DogfyDietApi.login(
+                session,
+                user_input[CONF_EMAIL].strip().lower(),
+                user_input[CONF_PASSWORD],
+            )
+        except DogfyDietAuthError:
+            errors["base"] = "invalid_auth"
+        except (aiohttp.ClientError, TimeoutError):
+            errors["base"] = "cannot_connect"
+        except Exception:
+            _LOGGER.exception("Unexpected error during login")
+            errors["base"] = "unknown"
+        return None
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -30,21 +53,8 @@ class DogfyDietConfigFlow(ConfigFlow, domain=DOMAIN):
         errors: dict[str, str] = {}
 
         if user_input is not None:
-            refresh_token = user_input[CONF_REFRESH_TOKEN]
-            session = async_get_clientsession(self.hass)
-
-            try:
-                auth_data = await DogfyDietApi.validate_refresh_token(
-                    session, refresh_token
-                )
-            except DogfyDietAuthError:
-                errors["base"] = "invalid_auth"
-            except (aiohttp.ClientError, TimeoutError):
-                errors["base"] = "cannot_connect"
-            except Exception:
-                _LOGGER.exception("Unexpected error during config flow")
-                errors["base"] = "unknown"
-            else:
+            auth_data = await self._async_login(user_input, errors)
+            if auth_data is not None:
                 user_id = (
                     auth_data.get("userId")
                     or auth_data.get("user", {}).get("id")
@@ -55,12 +65,15 @@ class DogfyDietConfigFlow(ConfigFlow, domain=DOMAIN):
 
                 return self.async_create_entry(
                     title="Dogfy Diet",
-                    data={CONF_REFRESH_TOKEN: refresh_token},
+                    data={
+                        CONF_EMAIL: user_input[CONF_EMAIL].strip().lower(),
+                        CONF_REFRESH_TOKEN: auth_data["refreshToken"],
+                    },
                 )
 
         return self.async_show_form(
             step_id="user",
-            data_schema=STEP_USER_DATA_SCHEMA,
+            data_schema=_login_schema(),
             errors=errors,
         )
 
@@ -73,34 +86,22 @@ class DogfyDietConfigFlow(ConfigFlow, domain=DOMAIN):
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         errors: dict[str, str] = {}
+        entry = self._get_reauth_entry()
 
         if user_input is not None:
-            refresh_token = user_input[CONF_REFRESH_TOKEN]
-            session = async_get_clientsession(self.hass)
-
-            try:
-                await DogfyDietApi.validate_refresh_token(session, refresh_token)
-            except DogfyDietAuthError:
-                errors["base"] = "invalid_auth"
-            except (aiohttp.ClientError, TimeoutError):
-                errors["base"] = "cannot_connect"
-            except Exception:
-                _LOGGER.exception("Unexpected error during reauth")
-                errors["base"] = "unknown"
-            else:
-                entry = self.hass.config_entries.async_get_entry(
-                    self.context["entry_id"]
+            auth_data = await self._async_login(user_input, errors)
+            if auth_data is not None:
+                return self.async_update_reload_and_abort(
+                    entry,
+                    data={
+                        **entry.data,
+                        CONF_EMAIL: user_input[CONF_EMAIL].strip().lower(),
+                        CONF_REFRESH_TOKEN: auth_data["refreshToken"],
+                    },
                 )
-                if entry:
-                    self.hass.config_entries.async_update_entry(
-                        entry,
-                        data={**entry.data, CONF_REFRESH_TOKEN: refresh_token},
-                    )
-                    await self.hass.config_entries.async_reload(entry.entry_id)
-                    return self.async_abort(reason="reauth_successful")
 
         return self.async_show_form(
             step_id="reauth_confirm",
-            data_schema=STEP_USER_DATA_SCHEMA,
+            data_schema=_login_schema(entry.data.get(CONF_EMAIL)),
             errors=errors,
         )

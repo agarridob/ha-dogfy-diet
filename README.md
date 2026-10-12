@@ -15,16 +15,11 @@ Copy `custom_components/dogfydiet` into your Home Assistant `custom_components` 
 ## Configuration
 
 1. Go to **Settings → Devices & Services → Add Integration → Dogfy Diet**
-2. Enter your refresh token
+2. Log in with your Dogfy Diet email and password
 
-### How to get your refresh token
+Your password is only used once to obtain a session token; it is not stored. The session is renewed automatically, and if it ever expires Home Assistant will ask you to log in again.
 
-1. Log in to [app.dogfydiet.com](https://app.dogfydiet.com)
-2. Open browser developer tools (F12)
-3. Go to **Application → Local Storage → app.dogfydiet.com**
-4. Copy the value of `dogfy.refreshToken`
-
-The refresh token is valid for ~120 days and is automatically rotated by the integration.
+> If you signed up with Google or Apple, set a password first using **Recover password** on [app.dogfydiet.com](https://app.dogfydiet.com/login).
 
 ## Disclaimer
 

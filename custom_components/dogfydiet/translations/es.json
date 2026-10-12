@@ -3,24 +3,27 @@
     "step": {
       "user": {
         "title": "Dogfy Diet",
-        "description": "Introduce tu refresh token. Lo puedes encontrar en las herramientas de desarrollador del navegador: Application > Local Storage > app.dogfydiet.com > dogfy.refreshToken",
+        "description": "Inicia sesión con tu cuenta de Dogfy Diet (app.dogfydiet.com). La contraseña solo se usa para obtener un token de sesión y no se guarda.",
         "data": {
-          "refresh_token": "Refresh Token"
+          "email": "Email",
+          "password": "Contraseña"
         }
       },
       "reauth_confirm": {
         "title": "Reautenticar Dogfy Diet",
-        "description": "Tu refresh token ha caducado. Introduce uno nuevo.",
+        "description": "Tu sesión de Dogfy Diet ha caducado. Vuelve a iniciar sesión.",
         "data": {
-          "refresh_token": "Refresh Token"
+          "email": "Email",
+          "password": "Contraseña"
         }
       }
     },
     "abort": {
-      "reauth_successful": "Reautenticación completada"
+      "reauth_successful": "Reautenticación completada",
+      "already_configured": "La cuenta ya está configurada"
     },
     "error": {
-      "invalid_auth": "Refresh token inválido",
+      "invalid_auth": "Email o contraseña incorrectos",
       "cannot_connect": "No se puede conectar a Dogfy Diet",
       "unknown": "Error inesperado"
     }
